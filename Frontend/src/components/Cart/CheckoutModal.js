@@ -4,108 +4,162 @@ import styled from 'styled-components';
 import { ThemeConsumer } from '../context/ThemeContexts';
 
 export default function CheckoutModal({ open, onClose, value }) {
-    const { cart = [], cartSubTotal = 0, cartTax = 0, cartTotal = 0, clearCart } = value;
-    const [name, setName] = useState('');
-    const [email, setEmail] = useState('');
-    const [address, setAddress] = useState('');
-    const [submitting, setSubmitting] = useState(false);
-    const [status, setStatus] = useState(null);
+  const { cart = [], cartSubTotal = 0, cartTax = 0, cartTotal = 0, clearCart } = value;
+  const [name, setName] = useState('');
+  const [email, setEmail] = useState('');
+  const [address, setAddress] = useState('');
+  const [submitting, setSubmitting] = useState(false);
+  const [status, setStatus] = useState(null);
 
-    if (!open) return null;
+  if (!open) return null;
 
-    const validate = () => {
-        if (!name.trim()) { setStatus({ type: 'error', text: 'Please enter your name' }); return false; }
-        if (!email.trim() || !/^\S+@\S+\.\S+$/.test(email)) { setStatus({ type: 'error', text: 'Enter a valid email' }); return false; }
-        if (!address.trim()) { setStatus({ type: 'error', text: 'Please enter address' }); return false; }
-        if (!cart.length) { setStatus({ type: 'error', text: 'Cart is empty' }); return false; }
-        return true;
-    };
+  const validate = () => {
+    if (!name.trim()) { setStatus({ type: 'error', text: 'Please enter your name' }); return false; }
+    if (!email.trim() || !/^\S+@\S+\.\S+$/.test(email)) { setStatus({ type: 'error', text: 'Enter a valid email' }); return false; }
+    if (!address.trim()) { setStatus({ type: 'error', text: 'Please enter address' }); return false; }
+    if (!cart.length) { setStatus({ type: 'error', text: 'Cart is empty' }); return false; }
+    return true;
+  };
 
-    const handleSubmit = async (e) => {
-        e.preventDefault();
-        setStatus(null);
-        if (!validate()) return;
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setStatus(null);
 
-        setSubmitting(true);
-        try {
-            const payload = {
-                buyer: { name: name.trim(), email: email.trim(), address: address.trim() },
-                cart: cart.map(item => ({ id: item.id, title: item.title, price: item.price, count: item.count, total: item.total })),
+    if (!validate()) return;
+
+    setSubmitting(true);
+
+    try {
+      // 1️⃣ Create Razorpay order
+      const orderRes = await fetch('/api/payment/create-order', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ amount: cartTotal })
+      });
+
+      const orderData = await orderRes.json();
+
+      if (!orderData.success) {
+        throw new Error("Failed to create payment order");
+      }
+
+      const options = {
+        key: "rzp_test_ScepFV5nxfMr3m",
+        amount: orderData.order.amount,
+        currency: "INR",
+        name: "ShopMitra",
+        description: "Order Payment",
+        order_id: orderData.order.id,
+
+        handler: async function (response) {
+          console.log("PAYMENT SUCCESS RESPONSE:", response);
+
+          try {
+            const verifyRes = await fetch('/api/payment/verify', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify(response)
+            });
+
+            const verifyData = await verifyRes.json();
+            console.log("VERIFY RESPONSE:", verifyData);
+
+            if (!verifyData.success) {
+              alert("Payment verification failed");
+              return;
+            }
+
+            console.log("CALLING PURCHASE API...");
+
+            const purchaseRes = await fetch('/api/purchase', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                buyer: { name, email, address },
+                cart,
                 subtotal: cartSubTotal,
                 tax: cartTax,
                 total: cartTotal
-            };
-
-            const res = await fetch('/api/purchase', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(payload)
+              })
             });
 
-            const data = await res.json();
+            const data = await purchaseRes.json();
+            console.log("PURCHASE RESPONSE:", data);
 
-            if (!res.ok) {
-                setStatus({ type: 'error', text: data?.message || 'Failed to send order' });
-            } else {
-                setStatus({ type: 'success', text: 'Order placed & email sent! Redirecting…' });
-                clearCart();
-                // Navigate to success page
-                setTimeout(() => {
-                    window.location.href = `/success/${data.orderId}`;
-                }, 900);
-            }
-        } catch (err) {
-            console.error('checkout error', err);
-            setStatus({ type: 'error', text: 'Server error, please try again later' });
-        } finally {
-            setSubmitting(false);
+            clearCart();
+            window.location.href = `/success/${data.orderId}`;
+
+          } catch (err) {
+            console.error("Final step error:", err);
+            alert("Order failed after payment");
+          }
+        },
+
+      prefill: {
+          name,
+          email
+        },
+
+        theme: {
+          color: "#2563eb"
         }
-    };
+      };
 
-    return (
-        <ThemeConsumer>
-            {({ theme }) => (
-                <Overlay role="dialog" aria-modal="true" aria-label="Checkout">
-                    <Card $dark={theme}>
-                        <Header>
-                            <h2>Complete your order</h2>
-                            <small>Enter buyer details to receive order confirmation</small>
-                        </Header>
+      const rzp = new window.Razorpay(options);
+      rzp.open();
 
-                        <Form onSubmit={handleSubmit}>
-                            <Field $dark={theme}>
-                                <label>Buyer Name</label>
-                                <input value={name} onChange={e => setName(e.target.value)} placeholder="Full name" />
-                            </Field>
+    } catch (err) {
+      console.error(err);
+      setStatus({ type: 'error', text: 'Payment failed' });
+    } finally {
+      setSubmitting(false);
+    }
+  };
 
-                            <Field $dark={theme}>
-                                <label>Buyer Email</label>
-                                <input value={email} onChange={e => setEmail(e.target.value)} placeholder="email@example.com" type="email" />
-                            </Field>
+  return (
+    <ThemeConsumer>
+      {({ theme }) => (
+        <Overlay role="dialog" aria-modal="true" aria-label="Checkout">
+          <Card $dark={theme}>
+            <Header>
+              <h2>Complete your order</h2>
+              <small>Enter buyer details to receive order confirmation</small>
+            </Header>
 
-                            <Field $dark={theme}>
-                                <label>Buyer Address</label>
-                                <textarea value={address} onChange={e => setAddress(e.target.value)} placeholder="Shipping address" rows={3} />
-                            </Field>
+            <Form onSubmit={handleSubmit}>
+              <Field $dark={theme}>
+                <label>Buyer Name</label>
+                <input value={name} onChange={e => setName(e.target.value)} placeholder="Full name" />
+              </Field>
 
-                            <Totals $dark={theme}>
-                                <div>Subtotal</div><div>${Number(cartSubTotal || 0).toFixed(2)}</div>
-                                <div>Tax</div><div>${Number(cartTax || 0).toFixed(2)}</div>
-                                <div style={{ fontWeight: 800, marginTop: 8 }}>Total</div><div style={{ fontWeight: 800, marginTop: 8 }}>${Number(cartTotal || 0).toFixed(2)}</div>
-                            </Totals>
+              <Field $dark={theme}>
+                <label>Buyer Email</label>
+                <input value={email} onChange={e => setEmail(e.target.value)} placeholder="email@example.com" type="email" />
+              </Field>
 
-                            {status && <Status $type={status.type}>{status.text}</Status>}
+              <Field $dark={theme}>
+                <label>Buyer Address</label>
+                <textarea value={address} onChange={e => setAddress(e.target.value)} placeholder="Shipping address" rows={3} />
+              </Field>
 
-                            <ButtonRow>
-                                <Secondary onClick={(e) => { e.preventDefault(); onClose(); }}>{submitting ? 'Please wait…' : 'Cancel'}</Secondary>
-                                <Primary type="submit" disabled={submitting}>{submitting ? 'Submitting…' : 'Save & Send Email'}</Primary>
-                            </ButtonRow>
-                        </Form>
-                    </Card>
-                </Overlay>
-            )}
-        </ThemeConsumer>
-    );
+              <Totals $dark={theme}>
+                <div>Subtotal</div><div>${Number(cartSubTotal || 0).toFixed(2)}</div>
+                <div>Tax</div><div>${Number(cartTax || 0).toFixed(2)}</div>
+                <div style={{ fontWeight: 800, marginTop: 8 }}>Total</div><div style={{ fontWeight: 800, marginTop: 8 }}>${Number(cartTotal || 0).toFixed(2)}</div>
+              </Totals>
+
+              {status && <Status $type={status.type}>{status.text}</Status>}
+
+              <ButtonRow>
+                <Secondary onClick={(e) => { e.preventDefault(); onClose(); }}>{submitting ? 'Please wait…' : 'Cancel'}</Secondary>
+                <Primary type="submit" disabled={submitting}>{submitting ? 'Submitting…' : 'Save & Send Email'}</Primary>
+              </ButtonRow>
+            </Form>
+          </Card>
+        </Overlay>
+      )}
+    </ThemeConsumer>
+  );
 }
 
 /* ---------------- styled-components ---------------- */
