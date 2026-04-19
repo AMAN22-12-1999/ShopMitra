@@ -46,7 +46,7 @@ export default function CheckoutModal({ open, onClose, value }) {
       }
 
       const options = {
-        key: process.env.REACT_APP_RAZORPAY_KEY_ID || "rzp_test_ScepFV5nxfMr3m",
+        key: "rzp_test_ScepFV5nxfMr3m",
         amount: orderData.order.amount,
         currency: "INR",
         name: "ShopMitra",
