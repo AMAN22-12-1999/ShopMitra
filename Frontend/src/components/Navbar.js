@@ -156,9 +156,12 @@ const NavRoot = styled.header`
   position: sticky;
   top: 0;
   z-index: 60;
-  background: ${({ themeMode }) => colors[themeMode].nav};
+  /* Semi-transparent background for glass effect */
+  background: ${({ themeMode }) => themeMode === 'dark' ? 'rgba(31, 41, 55, 0.85)' : 'rgba(39, 50, 68, 0.85)'};
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
   border-bottom: 1px solid ${({ themeMode }) => colors[themeMode].border};
-  box-shadow: 0 4px 14px rgba(0,0,0,0.18);
+  box-shadow: 0 4px 14px rgba(0,0,0,0.1);
 `;
 
 const NavBar = styled.nav`

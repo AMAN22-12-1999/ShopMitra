@@ -2,6 +2,7 @@
 import React, { useState } from 'react';
 import styled from 'styled-components';
 import { ThemeConsumer } from '../context/ThemeContexts';
+import Loader from '../Loader';
 
 export default function CheckoutModal({ open, onClose, value }) {
   const { cart = [], cartSubTotal = 0, cartTax = 0, cartTotal = 0, clearCart } = value;
@@ -9,6 +10,7 @@ export default function CheckoutModal({ open, onClose, value }) {
   const [email, setEmail] = useState('');
   const [address, setAddress] = useState('');
   const [submitting, setSubmitting] = useState(false);
+  const [processing, setProcessing] = useState(false)
   const [status, setStatus] = useState(null);
 
   if (!open) return null;
@@ -44,16 +46,46 @@ export default function CheckoutModal({ open, onClose, value }) {
       }
 
       const options = {
-        key: "rzp_test_ScepFV5nxfMr3m",
+        key: process.env.REACT_APP_RAZORPAY_KEY_ID || "rzp_test_ScepFV5nxfMr3m",
         amount: orderData.order.amount,
         currency: "INR",
         name: "ShopMitra",
         description: "Order Payment",
         order_id: orderData.order.id,
 
+        config: {
+          display: {
+            blocks: {
+              netbankingBlock: {
+                name: "Netbanking",
+                instruments: [
+                  {
+                    method: "netbanking"
+                  }
+                ]
+              },
+              walletBlock: {
+                name: "Wallets",
+                instruments: [
+                  {
+                    method: "wallet"
+                  }
+                ]
+              }
+            },
+            // Define the order in which they appear
+            sequence: ["block.netbankingBlock", "block.walletBlock"],
+            preferences: {
+              show_default_blocks: false // Hides Cards, UPI, Pay Later, etc.
+            }
+          }
+        },
+
         handler: async function (response) {
           console.log("PAYMENT SUCCESS RESPONSE:", response);
 
+          setProcessing(true);
+          setStatus({ type: 'success', text: 'Payment received! Finalizing order and sending email...' });
           try {
             const verifyRes = await fetch('/api/payment/verify', {
               method: 'POST',
@@ -95,7 +127,7 @@ export default function CheckoutModal({ open, onClose, value }) {
           }
         },
 
-      prefill: {
+        prefill: {
           name,
           email
         },
@@ -122,11 +154,17 @@ export default function CheckoutModal({ open, onClose, value }) {
         <Overlay role="dialog" aria-modal="true" aria-label="Checkout">
           <Card $dark={theme}>
             <Header>
-              <h2>Complete your order</h2>
-              <small>Enter buyer details to receive order confirmation</small>
+              <h2>{processing ? 'Processing Payment...' : 'Complete your order'}</h2>
+              {!processing && <small>Enter buyer details to receive order confirmation</small>}
             </Header>
 
-            <Form onSubmit={handleSubmit}>
+            {processing ? (
+              <ProcessingState $dark={theme}>
+                <Loader />
+                <h3>Generating your receipt...</h3>
+                <p>Please do not close or refresh this window. We are preparing your order and sending the confirmation email.</p>
+              </ProcessingState>
+            ) : (<Form onSubmit={handleSubmit}>
               <Field $dark={theme}>
                 <label>Buyer Name</label>
                 <input value={name} onChange={e => setName(e.target.value)} placeholder="Full name" />
@@ -143,9 +181,9 @@ export default function CheckoutModal({ open, onClose, value }) {
               </Field>
 
               <Totals $dark={theme}>
-                <div>Subtotal</div><div>${Number(cartSubTotal || 0).toFixed(2)}</div>
-                <div>Tax</div><div>${Number(cartTax || 0).toFixed(2)}</div>
-                <div style={{ fontWeight: 800, marginTop: 8 }}>Total</div><div style={{ fontWeight: 800, marginTop: 8 }}>${Number(cartTotal || 0).toFixed(2)}</div>
+                <div>Subtotal</div><div>₹{Number(cartSubTotal || 0).toFixed(2)}</div>
+                <div>Tax</div><div>₹{Number(cartTax || 0).toFixed(2)}</div>
+                <div style={{ fontWeight: 800, marginTop: 8 }}>Total</div><div style={{ fontWeight: 800, marginTop: 8 }}>₹{Number(cartTotal || 0).toFixed(2)}</div>
               </Totals>
 
               {status && <Status $type={status.type}>{status.text}</Status>}
@@ -154,7 +192,7 @@ export default function CheckoutModal({ open, onClose, value }) {
                 <Secondary onClick={(e) => { e.preventDefault(); onClose(); }}>{submitting ? 'Please wait…' : 'Cancel'}</Secondary>
                 <Primary type="submit" disabled={submitting}>{submitting ? 'Submitting…' : 'Save & Send Email'}</Primary>
               </ButtonRow>
-            </Form>
+            </Form>)}
           </Card>
         </Overlay>
       )}
@@ -265,4 +303,23 @@ const Secondary = styled.button`
   color: inherit;
   font-weight: 700;
   cursor: pointer;
+`;
+
+
+const ProcessingState = styled.div`
+  text-align: center;
+  padding: 40px 20px;
+  
+  h3 {
+    margin-top: 24px;
+    margin-bottom: 8px;
+    font-size: 20px;
+    color: ${({ $dark }) => ($dark ? '#60a5fa' : '#2563eb')};
+  }
+  
+  p {
+    color: ${({ $dark }) => ($dark ? '#94a3b8' : '#64748b')};
+    font-size: 14px;
+    line-height: 1.5;
+  }
 `;

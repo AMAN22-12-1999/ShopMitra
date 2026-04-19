@@ -24,7 +24,7 @@ export default function CartItem({ item, value }) {
 
                     {/* Price */}
                     <Cell $align="center">
-                        <Price $dark={theme}>${money(price)}</Price>
+                        <Price $dark={theme}>₹{money(price)}</Price>
                     </Cell>
 
                     {/* Quantity stepper */}
@@ -60,7 +60,7 @@ export default function CartItem({ item, value }) {
                     {/* Line total */}
                     <Cell $align="right">
                         <LineTotal $dark={theme}>
-                            Item Total : <strong>${money(total)}</strong>
+                            Item Total : <strong>₹{money(total)}</strong>
                         </LineTotal>
                     </Cell>
                 </Row>
@@ -136,24 +136,26 @@ const Stepper = styled.div`
 `;
 
 const StepBtn = styled.button`
-  width: 38px;
-  height: 38px;
-  border-radius: 10px;
+  width: 44px; /* Increased from 38px */
+  height: 44px; /* Increased from 38px */
+  border-radius: 12px;
   border: 1px solid rgba(148,163,184,.35);
   background: #ffffff;
-  font-size: 18px;
+  font-size: 20px;
   font-weight: 800;
-  line-height: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   cursor: pointer;
-  box-shadow: 0 6px 12px rgba(0,0,0,.06);
-  transition: transform .08s ease, background .15s ease, box-shadow .15s;
+  box-shadow: 0 4px 6px rgba(0,0,0,.05);
+  transition: transform .08s ease, background .15s ease;
 
   &:hover {
     background: #f1f5f9;
-    transform: translateY(-1px);
+    transform: scale(1.05);
   }
   &:active {
-    transform: translateY(0);
+    transform: scale(0.95);
   }
 `;
 

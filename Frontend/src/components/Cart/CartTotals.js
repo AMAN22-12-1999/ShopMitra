@@ -39,16 +39,16 @@ export default function CartTotals({ value }) {
           <Summary $dark={theme}>
             <Row>
               <Label $dark={theme}>Subtotal</Label>
-              <Value>${money(cartSubTotal)}</Value>
+              <Value>₹{money(cartSubTotal)}</Value>
             </Row>
             <Row>
               <Label $dark={theme}>Tax</Label>
-              <Value>${money(cartTax)}</Value>
+              <Value>₹{money(cartTax)}</Value>
             </Row>
             <Divider />
             <Row $total>
               <Label $dark={theme}>Total</Label>
-              <Total $dark={theme}>${money(cartTotal)}</Total>
+              <Total $dark={theme}>₹{money(cartTotal)}</Total>
             </Row>
           </Summary>
 

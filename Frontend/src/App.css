@@ -62,13 +62,16 @@
 .mainmenu{
   margin-left: 20px;
 }
-body{
-  font-family:"Anton", sans-serif !important;
-  color:var(--mainDark) !important;
+body {
+  font-family: 'Inter', system-ui, -apple-system, sans-serif !important;
+  color: var(--mainDark) !important;
+  -webkit-font-smoothing: antialiased;
 }
-.text-title{
-  font-family: 'Anton', cursive;
-  letter-spacing:0.3rem;
+
+.text-title {
+  font-family: 'Poppins', sans-serif;
+  letter-spacing: 0.1rem;
+  font-weight: 700;
   text-transform: uppercase; 
 }
 .text-blue{
