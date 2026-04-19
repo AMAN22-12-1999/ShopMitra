@@ -40,7 +40,7 @@ export default class Details extends Component {
                       </div>
 
                       <div className="price">
-                        <span className="badge">${price}</span>
+                        <span className="badge">₹{price}</span>
                         <span className="note">Inclusive of all taxes</span>
                       </div>
 

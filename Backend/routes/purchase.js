@@ -42,8 +42,8 @@ function generateOrderEmailHtml(buyer, items, subtotal, tax, total, orderNumber,
     <tr>
       <td style="padding:8px 12px;border-bottom:1px solid #e6e6e6;">${escapeHtml(it.title)}</td>
       <td style="padding:8px 12px;border-bottom:1px solid #e6e6e6;text-align:right;">${it.count}</td>
-      <td style="padding:8px 12px;border-bottom:1px solid #e6e6e6;text-align:right;">$${money(it.price)}</td>
-      <td style="padding:8px 12px;border-bottom:1px solid #e6e6e6;text-align:right;">$${money(it.total)}</td>
+      <td style="padding:8px 12px;border-bottom:1px solid #e6e6e6;text-align:right;">₹${money(it.price)}</td>
+      <td style="padding:8px 12px;border-bottom:1px solid #e6e6e6;text-align:right;">₹${money(it.total)}</td>
     </tr>
   `).join('');
 
@@ -88,9 +88,9 @@ function generateOrderEmailHtml(buyer, items, subtotal, tax, total, orderNumber,
           </table>
 
           <table width="100%" cellpadding="0" cellspacing="0" style="margin-top:8px;">
-            <tr><td style="padding:8px 12px;color:#6b7280;">Subtotal</td><td style="padding:8px 12px;text-align:right;color:#111827;"><strong>$${money(subtotal)}</strong></td></tr>
-            <tr><td style="padding:8px 12px;color:#6b7280;">Tax</td><td style="padding:8px 12px;text-align:right;color:#111827;"><strong>$${money(tax)}</strong></td></tr>
-            <tr><td style="padding:8px 12px;color:#111827;font-weight:700;">Total</td><td style="padding:8px 12px;text-align:right;color:#111827;font-weight:700;"><strong>$${money(total)}</strong></td></tr>
+            <tr><td style="padding:8px 12px;color:#6b7280;">Subtotal</td><td style="padding:8px 12px;text-align:right;color:#111827;"><strong>₹${money(subtotal)}</strong></td></tr>
+            <tr><td style="padding:8px 12px;color:#6b7280;">Tax</td><td style="padding:8px 12px;text-align:right;color:#111827;"><strong>₹${money(tax)}</strong></td></tr>
+            <tr><td style="padding:8px 12px;color:#111827;font-weight:700;">Total</td><td style="padding:8px 12px;text-align:right;color:#111827;font-weight:700;"><strong>₹${money(total)}</strong></td></tr>
           </table>
 
           <div style="margin-top:18px;padding:14px;border-radius:8px;background:#f8fafc;border:1px solid #e6eef9;">
@@ -222,8 +222,8 @@ router.get('/receipt/:id', async (req, res) => {
       <tr>
         <td>${escapeHtml(it.title)}</td>
         <td style="text-align:right">${it.count}</td>
-        <td style="text-align:right">$${money(it.price)}</td>
-        <td style="text-align:right">$${money(it.total)}</td>
+        <td style="text-align:right">₹${money(it.price)}</td>
+        <td style="text-align:right">₹${money(it.total)}</td>
       </tr>
     `).join('');
 
@@ -271,9 +271,9 @@ router.get('/receipt/:id', async (req, res) => {
           </table>
 
           <table style="margin-top:12px;">
-            <tr class="totals"><td class="muted">Subtotal</td><td class="right"><strong>$${money(doc.subtotal)}</strong></td></tr>
-            <tr class="totals"><td class="muted">Tax</td><td class="right"><strong>$${money(doc.tax)}</strong></td></tr>
-            <tr class="totals"><td><strong>Total</strong></td><td class="right"><strong>$${money(doc.total)}</strong></td></tr>
+            <tr class="totals"><td class="muted">Subtotal</td><td class="right"><strong>₹${money(doc.subtotal)}</strong></td></tr>
+            <tr class="totals"><td class="muted">Tax</td><td class="right"><strong>₹${money(doc.tax)}</strong></td></tr>
+            <tr class="totals"><td><strong>Total</strong></td><td class="right"><strong>₹${money(doc.total)}</strong></td></tr>
           </table>
         </div>
       </body>

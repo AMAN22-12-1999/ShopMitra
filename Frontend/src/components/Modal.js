@@ -26,7 +26,7 @@ export default class Modal extends Component {
                     </ImageWrap>
                     <h4 className="product-title">{title}</h4>
                     <p className="price">
-                      Price: <span>${price}</span>
+                      Price: <span>₹{price}</span>
                     </p>
 
                     <ButtonRow>

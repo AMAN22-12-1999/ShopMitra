@@ -36,7 +36,7 @@ export default class Product extends Component {
                 <Footer $dark={theme}>
                   <Title>{title}</Title>
                   <Price>
-                    ${Number(price).toFixed(2)}
+                    ₹{Number(price).toFixed(2)}
                   </Price>
                 </Footer>
               </Card>

@@ -68,17 +68,17 @@ export default function OrderSuccess() {
                         <tr key={idx}>
                           <td>{it.title}</td>
                           <td className="right">{it.count}</td>
-                          <td className="right">${money(it.price)}</td>
-                          <td className="right">${money(it.total)}</td>
+                          <td className="right">₹{money(it.price)}</td>
+                          <td className="right">₹{money(it.total)}</td>
                         </tr>
                       ))}
                     </tbody>
                   </Table>
 
                   <Totals>
-                    <div>Subtotal</div><div className="right">${money(order.subtotal)}</div>
-                    <div>Tax</div><div className="right">${money(order.tax)}</div>
-                    <div className="bold">Total</div><div className="right bold">${money(order.total)}</div>
+                    <div>Subtotal</div><div className="right">₹{money(order.subtotal)}</div>
+                    <div>Tax</div><div className="right">₹{money(order.tax)}</div>
+                    <div className="bold">Total</div><div className="right bold">₹{money(order.total)}</div>
                   </Totals>
 
                   <Actions>
